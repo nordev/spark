@@ -1,0 +1,36 @@
+# Execute as ...
+# spark-submit --driver-class-path postgresql-42.2.6.jar --jars postgresql-42.2.6.jar test_pyspark_to_postgresql.py
+
+# 1) Install spark with pip: pip install pyspark
+# 2) Download last version of jdbc postgresql connector in: https://jdbc.postgresql.org/download.html
+# 3) Complete this code with your db credentials:
+
+from __future__ import print_function
+
+from pyspark.sql import SparkSession
+from pyspark.sql import Row
+
+
+
+def jdbc_dataset_example(spark):
+    df = spark.read \
+        .jdbc(url="jdbc:postgresql://[your_db_host]:[your_db_port]/[your_db_name]",
+              table=" SELECT * FROM your_table LIMIT 10",
+              properties={"user": "[your_user]", "password": "[your_password]"})
+
+    df.createOrReplaceTempView("[your_table]")
+
+    sqlDF = spark.sql("SELECT * FROM [your_table] LIMIT 10")
+    sqlDF.show()
+
+
+if __name__ == "__main__":
+    spark = SparkSession \
+        .builder \
+        .appName("Python Spark SQL data source example") \
+        .config("spark.jars", "/tmp/postgresql-42.2.6.jar") \
+        .getOrCreate()
+
+jdbc_dataset_example(spark)
+
+spark.stop()
